@@ -1,0 +1,22 @@
+# deps
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# build
+dist/
+build/
+.quasar/
+
+# local data / secrets
+*.db
+*.sqlite
+*.sqlite3
+instance/
+.env
+.env.*
+zappa_settings.json
+*.log
+!.env.example

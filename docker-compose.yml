@@ -1,0 +1,62 @@
+# Local run: docker compose up --build   (copy .env.example to .env first)
+# Admin UI  -> http://localhost:8080
+# User UI   -> http://localhost:8081
+# Backends are only reachable through the frontends' /api proxy.
+services:
+  mariadb:
+    image: mariadb:11.1
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?copy .env.example to .env}
+      MARIADB_DATABASE: network_diag_db
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  admin-backend:
+    build:
+      context: ./backend
+      args: { PORT: "5425" }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mariadb:3306/network_diag_db
+    depends_on:
+      mariadb: { condition: service_healthy }
+
+  admin-frontend:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: http://admin-backend:5425
+    depends_on: [admin-backend]
+    ports:
+      - "8080:80"
+
+  user-backend:
+    build:
+      context: ./for_user/backend
+      args: { PORT: "5427" }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: sqlite:////data/network_diag_user.db
+      ADMIN_BACKEND_URL: http://admin-backend:5425
+    volumes:
+      - user-data:/data
+    depends_on: [admin-backend]
+
+  user-frontend:
+    build: ./for_user/frontend
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: http://user-backend:5427
+    depends_on: [user-backend]
+    ports:
+      - "8081:80"
+
+volumes:
+  mariadb-data:
+  user-data:
