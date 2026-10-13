@@ -405,8 +405,11 @@ const copyUuid = (uuid) => {
 }
 
 const useSession = (uuid) => {
-    // Open user app on port 5428
-    const userAppUrl = `http://${window.location.hostname}:5428/#/diagnosis/${uuid}`
+    // admin.<domain> -> diag.<domain> on the same scheme; any other host keeps the local dev port
+    const { protocol, hostname } = window.location
+    const userAppUrl = hostname.startsWith('admin.')
+        ? `${protocol}//diag.${hostname.slice('admin.'.length)}/#/diagnosis/${uuid}`
+        : `http://${hostname}:5428/#/diagnosis/${uuid}`
     window.open(userAppUrl, '_blank')
 }
 
