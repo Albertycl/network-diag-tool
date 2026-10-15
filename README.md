@@ -1,5 +1,7 @@
 # network-diag-tool
 
+**Live demo:** admin UI https://admin.albertycliu.xyz, user UI https://diag.albertycliu.xyz (no login on purpose, for the demo)
+
 A small web tool for diagnosing whether a set of sites and APIs is reachable from a user's browser.
 
 - An admin creates a **session** (a list of target URLs) and shares its link.
